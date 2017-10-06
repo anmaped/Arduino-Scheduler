@@ -77,14 +77,19 @@ void setup()
   unsigned long start, stop, us;
   int nr;
 
-  Serial.begin(57600);
+  Serial.begin(115200);
   while (!Serial);
+
+
+  for(int i=0; i<10000; i++)
+  Serial.print(".");
+  
   Serial.println(F("SchedulerBenchmark: started"));
   Serial.flush();
 
   // 1. Measure initiate scheduler
   start = micros();
-  Scheduler.begin(256);
+  //Scheduler.begin(1024);
   stop = micros();
   us = stop - start;
   Serial.print(F("1. Initiate scheduler and main task: "));
@@ -143,7 +148,9 @@ void setup()
   // 6. Measure max number of tasks
   start = micros();
   nr = 0;
-  while (Scheduler.start(NULL, incrementCounter)) nr++;
+  //while (Scheduler.start(NULL, incrementCounter)) nr++;
+  for(nr =0; nr < 5; nr++)
+  Scheduler.start(NULL, incrementCounter);
   stop = micros();
   us = stop - start;
   Serial.print(F("6. Start "));
@@ -187,15 +194,22 @@ void setup()
   Serial.println(F(" us"));
   Serial.flush();
 }
-
+unsigned int x = 1000000;
 void loop()
 {
+  if(x > 100000)
+  panic();
+
+  x++;
+  
   yield();
 }
 
 void incrementCounter()
 {
   counter += 1;
+  delay(1);
+  Serial.println("I");
   yield();
 }
 
