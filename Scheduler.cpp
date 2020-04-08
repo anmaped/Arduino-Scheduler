@@ -142,7 +142,7 @@ extern "C" void loop_task(os_event_t *events)
     Scheduler.begin(0x4000);
     setup();
 
-    if(!Scheduler.start(NULL, loop, 0x1000))
+    if(!Scheduler.start(NULL, loop, 1024))
     {
       panic();
     }
