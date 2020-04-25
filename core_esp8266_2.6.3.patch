@@ -1,0 +1,96 @@
+diff -ruN 2.6.3/cores/esp8266/core_esp8266_main.cpp 2.6.3_mod/cores/esp8266/core_esp8266_main.cpp
+--- 2.6.3/cores/esp8266/core_esp8266_main.cpp	2020-04-25 09:58:37.657733964 -0700
++++ 2.6.3_mod/cores/esp8266/core_esp8266_main.cpp	2020-04-06 11:00:58.955024000 -0700
+@@ -82,8 +82,8 @@
+ void initVariant() {
+ }
+ 
+-void preloop_update_frequency() __attribute__((weak));
+-void preloop_update_frequency() {
++extern "C" void preloop_update_frequency() __attribute__((weak));
++extern "C" void preloop_update_frequency() {
+ #if defined(F_CPU) && (F_CPU == 160000000L)
+     REG_SET_BIT(0x3ff00014, BIT(0));
+     ets_update_cpu_frequency(160);
+@@ -108,10 +108,13 @@
+ 
+ extern "C" void esp_yield() __attribute__ ((weak, alias("__esp_yield")));
+ 
+-extern "C" IRAM_ATTR void esp_schedule() {
++extern "C" void __esp_schedule() {
++//extern "C" IRAM_ATTR void esp_schedule() {
+     ets_post(LOOP_TASK_PRIORITY, 0, 0);
+ }
+ 
++extern "C" void esp_schedule(void) __attribute__ ((weak, alias("__esp_schedule")));
++
+ extern "C" void __yield() {
+     if (can_yield()) {
+         esp_schedule();
+@@ -124,7 +127,7 @@
+ 
+ extern "C" void yield(void) __attribute__ ((weak, alias("__yield")));
+ 
+-extern "C" void optimistic_yield(uint32_t interval_us) {
++extern "C" void __optimistic_yield(uint32_t interval_us) {
+     if (can_yield() &&
+         (system_get_time() - s_micros_at_task_start) > interval_us)
+     {
+@@ -132,6 +135,8 @@
+     }
+ }
+ 
++extern "C" void optimistic_yield(uint32_t interval_us) __attribute__ ((weak, alias("__optimistic_yield")));
++
+ 
+ // Replace ets_intr_(un)lock with nestable versions
+ extern "C" void IRAM_ATTR ets_intr_lock() {
+@@ -181,7 +186,7 @@
+     esp_schedule();
+ }
+ 
+-static void loop_task(os_event_t *events) {
++extern "C" void __loop_task(os_event_t *events) {
+     (void) events;
+     s_micros_at_task_start = system_get_time();
+     cont_run(g_pcont, &loop_wrapper);
+@@ -189,6 +194,10 @@
+         panic();
+     }
+ }
++
++extern "C" void loop_task(os_event_t *events) __attribute__ ((weak, alias("__loop_task")));
++
++
+ extern "C" {
+ 
+ struct object { long placeholder[ 10 ]; };
+diff -ruN 2.6.3/cores/esp8266/spiffs/spiffs_config.h 2.6.3_mod/cores/esp8266/spiffs/spiffs_config.h
+--- 2.6.3/cores/esp8266/spiffs/spiffs_config.h	2020-04-25 09:58:37.657733964 -0700
++++ 2.6.3_mod/cores/esp8266/spiffs/spiffs_config.h	2020-04-07 09:39:35.720492000 -0700
+@@ -162,7 +162,7 @@
+ 
+ // Object name maximum length.
+ #ifndef SPIFFS_OBJ_NAME_LEN
+-#define SPIFFS_OBJ_NAME_LEN             (32)
++#define SPIFFS_OBJ_NAME_LEN             (64)
+ #endif
+ 
+ // Maximum length of the metadata associated with an object.
+@@ -210,11 +210,13 @@
+ 
+ // define this to enter a mutex if you're running on a multithreaded system
+ #ifndef SPIFFS_LOCK
+-#define SPIFFS_LOCK(fs)
++extern void esp_spiffs_lock(uint32_t*);
++#define SPIFFS_LOCK(fs) esp_spiffs_lock((uint32_t *)fs)
+ #endif
+ // define this to exit a mutex if you're running on a multithreaded system
+ #ifndef SPIFFS_UNLOCK
+-#define SPIFFS_UNLOCK(fs)
++extern void esp_spiffs_unlock(uint32_t*);
++#define SPIFFS_UNLOCK(fs) esp_spiffs_unlock((uint32_t *)fs)
+ #endif
+ 
+ 
+

@@ -1,18 +1,31 @@
-# ESP8266 - NOTE
+# esp8266-scheduler
 
-We should use the Arduino 1.6.8 with esp8266 runtime environment provided in this branch (https://github.com/srmq/Arduino/tree/scheduler_branch).
+## Notes for patching ESP8266 core
 
-Arduino 1.6.8 for windows: https://www.arduino.cc/download_handler.php?f=/arduino-1.6.8-windows.zip and for Linux 32bits: https://www.arduino.cc/download_handler.php?f=/arduino-1.6.8-linux32.tar.xz
+The current scheduler library supports esp8266 Arduino core '2.6.3'.
 
-We should replace the esp8266 in the hardware directory inside Arduino folder with the version provided in the branch above.
+Apply the path `core_esp8266_2.6.3.patch` for esp8266 Arduino core '2.6.3'. First, unpack git repository to the home directory and then apply the patch into the current availabe esp8266 core. Currently, the esp8266 core is available at `~/.arduino15`. Use the following commands to apply the path and adapt them accordingly if needed.
+```
+cd ~
+git clone https://github.com/anmaped/esp8266-scheduler.git
+cd ~/.arduino15/packages/esp8266/hardware/esp8266/
+patch -s -p0 < ~/esp8266-scheduler/libraries/scheduler/core_esp8266_2.6.3.patch
+```
 
-- Install esp8266 2.3.0 using the common instructions (add http://arduino.esp8266.com/stable/package_esp8266com_index.json to preferences, and install it using the board manager).
-- Add the folder 'hardware/esp8266com/esp8266' and extract inside the content available in the branch (https://github.com/srmq/Arduino/tree/scheduler_branch). Note that we could download the zip file from GitHub and just rename the folder.
-- Add the Scheduler library.
-- Note also that the esp8266com core will replace the installed version 2.3.0 as we intend.
+### Old instructions for esp8266 core version 2.3.0:
+ 
+We have to chose the Arduino 1.6.8 with esp8266 core version 2.3.0. This patched runtime is available in `https://github.com/srmq/Arduino/tree/scheduler_branch`. The Arduino 1.6.8 for windows is availalbe in `https://www.arduino.cc/download_handler.php?f=/arduino-1.6.8-windows.zip` and for Linux 32 in `https://www.arduino.cc/download_handler.php?f=/arduino-1.6.8-linux32.tar.xz`.
+
+Instructions: Replace the esp8266 core inside the Arduino folder `~/.arduino15/packages/esp8266/hardware` with the patched version provided in the branch above.
+
+- Install esp8266 2.3.0 using the usual arduino esp8266 instructions (add http://arduino.esp8266.com/stable/package_esp8266com_index.json to preferences, and install it using the board manager).
+- Create the folder 'hardware/esp8266com/esp8266' and extract inside it the content available in the branch `https://github.com/srmq/Arduino/tree/scheduler_branch`. Simply download the zip file from GitHub and rename it locally.
+- Add the Scheduler library to Arduino.
+
+Note that the esp8266 core will replace the installed version 2.3.0.
 
 
-# Arduino-Scheduler
+## Introduction
 
 This library implements an extended sub-set of the Arduino Scheduler
 class. Multiple loop() functions, tasks, may be started and run in a
@@ -39,15 +52,13 @@ bytes for SAM/SAMD/Teensy 3.1).
 The Scheduler is a single-ton and the library creates the single
 instance.
 
-![screenshot](https://dl.dropboxusercontent.com/u/993383/Cosa/screenshots/Screenshot%20from%202016-01-29%2015%3A24%3A17.png)
-
 This library also includes support for task synchronization and
 communication; Semaphores, Queues and Channels.
 
 ## Install
 
-Download and unzip the Arduino-Scheduler library into your sketchbook
-libraries directory. Rename from Arduino-Scheduler-master to Arduino-Scheduler.
+Download and unzip the esp8266-scheduler library into your sketchbook
+libraries directory. Rename from esp8266-scheduler-master to esp8266-scheduler.
 
 The Scheduler library and examples should be found in the Arduino IDE
 File>Examples menu.
