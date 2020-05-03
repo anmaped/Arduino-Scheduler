@@ -1,0 +1,83 @@
+diff -ruN 2.7.0/cores/esp8266/core_esp8266_main.cpp 2.7.0_mod/cores/esp8266/core_esp8266_main.cpp
+--- 2.7.0/cores/esp8266/core_esp8266_main.cpp	2020-04-25 09:58:37.657733964 -0700
++++ 2.7.0_mod/cores/esp8266/core_esp8266_main.cpp	2020-04-06 11:00:58.955024000 -0700
+@@ -120,10 +120,12 @@
+ 
+ extern "C" void esp_yield() __attribute__ ((weak, alias("__esp_yield")));
+ 
+-extern "C" IRAM_ATTR void esp_schedule() {
++extern "C" IRAM_ATTR void __esp_schedule() {
+     ets_post(LOOP_TASK_PRIORITY, 0, 0);
+ }
+ 
++extern "C" void esp_schedule(void) __attribute__ ((weak, alias("__esp_schedule")));
++
+ extern "C" void __yield() {
+     if (can_yield()) {
+         esp_schedule();
+@@ -136,7 +138,7 @@
+ 
+ extern "C" void yield(void) __attribute__ ((weak, alias("__yield")));
+ 
+-extern "C" void optimistic_yield(uint32_t interval_us) {
++extern "C" void __optimistic_yield(uint32_t interval_us) {
+     const uint32_t intvl_cycles = interval_us *
+ #if defined(F_CPU)
+         clockCyclesPerMicrosecond();
+@@ -150,6 +152,8 @@
+     }
+ }
+ 
++extern "C" void optimistic_yield(uint32_t interval_us) __attribute__ ((weak, alias("__optimistic_yield")));
++
+ // Replace ets_intr_(un)lock with nestable versions
+ extern "C" void IRAM_ATTR ets_intr_lock() {
+   if (ets_intr_lock_stack_ptr < ETS_INTR_LOCK_NEST_MAX)
+@@ -198,7 +202,7 @@
+     esp_schedule();
+ }
+ 
+-static void loop_task(os_event_t *events) {
++extern "C" void __loop_task(os_event_t *events) {
+     (void) events;
+     s_cycles_at_yield_start = ESP.getCycleCount();
+     cont_run(g_pcont, &loop_wrapper);
+@@ -206,6 +210,9 @@
+         panic();
+     }
+ }
++
++extern "C" void loop_task(os_event_t *events) __attribute__ ((weak, alias("__loop_task")));
++
+ extern "C" {
+ 
+ struct object { long placeholder[ 10 ]; };
+diff -ruN 2.7.0/cores/esp8266/spiffs/spiffs_config.h 2.7.0_mod/cores/esp8266/spiffs/spiffs_config.h
+--- 2.7.0/cores/esp8266/spiffs/spiffs_config.h	2020-04-25 09:58:37.657733964 -0700
++++ 2.7.0_mod/cores/esp8266/spiffs/spiffs_config.h	2020-04-07 09:39:35.720492000 -0700
+@@ -162,7 +162,7 @@
+ 
+ // Object name maximum length.
+ #ifndef SPIFFS_OBJ_NAME_LEN
+-#define SPIFFS_OBJ_NAME_LEN             (32)
++#define SPIFFS_OBJ_NAME_LEN             (64)
+ #endif
+ 
+ // Maximum length of the metadata associated with an object.
+@@ -210,11 +210,13 @@
+ 
+ // define this to enter a mutex if you're running on a multithreaded system
+ #ifndef SPIFFS_LOCK
+-#define SPIFFS_LOCK(fs)
++extern void esp_spiffs_lock(uint32_t*);
++#define SPIFFS_LOCK(fs) esp_spiffs_lock((uint32_t *)fs)
+ #endif
+ // define this to exit a mutex if you're running on a multithreaded system
+ #ifndef SPIFFS_UNLOCK
+-#define SPIFFS_UNLOCK(fs)
++extern void esp_spiffs_unlock(uint32_t*);
++#define SPIFFS_UNLOCK(fs) esp_spiffs_unlock((uint32_t *)fs)
+ #endif
+ 
+ 
+
