@@ -88,8 +88,6 @@ static uint32_t g_micros_at_task_start = 0;
 
 extern "C" void esp_yield(void){ yield(); }
 
-extern "C" void esp_scheduler(void){}
-
 extern "C" void optimistic_yield(uint32_t interval_us){ yield(); }
 
 extern "C" void delay(unsigned long interval_ms)
