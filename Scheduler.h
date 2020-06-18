@@ -68,10 +68,22 @@ public:
   static void yield();
 
   /**
-   * Return current task stack size.
+   * Return stack length of the current task.
    * @return bytes
    */
   static size_t stack();
+
+  /**
+   * Return stack size
+   * @return size_t
+   */
+  static size_t * stackSize() { return (size_t *) s_top; };
+
+  /**
+   * Return number of tasks
+   * @return size_t
+   */
+  static size_t numberOfTasks() { return s_count; };
 
 protected:
   /**
@@ -131,6 +143,9 @@ protected:
 
   /** Task stack allocation top. */
   static size_t s_top;
+
+  /** Number of registered tasks. */
+  static size_t s_count;
 };
 
 /** Scheduler single-ton. */

@@ -39,7 +39,7 @@ extern size_t __malloc_margin;
 #elif defined(ARDUINO_ARCH_ESP8266)
 // https://github.com/esp8266/esp8266-wiki/wiki/Memory-Map
 #define RAMSTART  0x3FFE8000
-#define RAMSIZE   0x18000
+#define RAMSIZE   0x14000
 #define RAMEND    RAMSTART + RAMSIZE - 1
 //#define RAMEND 0x3fffffb0
 
@@ -67,6 +67,9 @@ SchedulerClass::task_t* SchedulerClass::s_running = &SchedulerClass::s_main;
 
 // Initial top stack for task allocation
 size_t SchedulerClass::s_top = SchedulerClass::DEFAULT_STACK_SIZE;
+
+// Initial number of tasks
+size_t SchedulerClass::s_count = 0;
 
 #if defined(ARDUINO_ARCH_ESP8266)
 extern "C" {
@@ -137,7 +140,7 @@ extern "C" void loop_task(os_event_t *events)
     one = false;
 
     preloop_update_frequency();
-    Scheduler.begin(0x4000);
+    Scheduler.begin(0x0);
     setup();
 
     if(!Scheduler.start(NULL, loop, 1024))
@@ -226,6 +229,7 @@ bool SchedulerClass::start(func_t taskSetup, func_t taskLoop, size_t stackSize)
 
   // Adjust stack top for next task allocation
   s_top += stackSize;
+  s_count++;
 
   // Initiate task with given functions and stack top
   init(taskSetup, taskLoop, stack - stackSize);
